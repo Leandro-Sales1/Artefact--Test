@@ -35,7 +35,39 @@ describe("task controller", () => {
   it("retorna NOT_FOUND para id inexistente", async () => {
     await expectTRPCError(api.task.getById({ id: UNKNOWN_ID }), "NOT_FOUND");
     await expectTRPCError(api.task.update({ id: UNKNOWN_ID, title: "x" }), "NOT_FOUND");
+    await expectTRPCError(api.task.setCompleted({ id: UNKNOWN_ID, completed: true }), "NOT_FOUND");
     await expectTRPCError(api.task.delete({ id: UNKNOWN_ID }), "NOT_FOUND");
+  });
+
+  it("conclui e reabre a tarefa", async () => {
+    const created = await api.task.create({ title: "Estudar" });
+
+    expect(await api.task.setCompleted({ id: created.id, completed: true })).toEqual({
+      ...created,
+      completed: true,
+    });
+    expect((await api.task.setCompleted({ id: created.id, completed: false })).completed).toBe(false);
+  });
+
+  it("não edita tarefa concluída, mas permite reabrir e então editar", async () => {
+    const created = await api.task.create({ title: "Original" });
+    await api.task.setCompleted({ id: created.id, completed: true });
+
+    await expectTRPCError(api.task.update({ id: created.id, title: "Alterada" }), "PRECONDITION_FAILED");
+    expect((await api.task.getById({ id: created.id })).title).toBe("Original");
+
+    await api.task.setCompleted({ id: created.id, completed: false });
+    expect((await api.task.update({ id: created.id, title: "Alterada" })).title).toBe("Alterada");
+  });
+
+  it("exige status de conclusão booleano", async () => {
+    const created = await api.task.create({ title: "Estudar" });
+    await expectTRPCError(
+      api.task.setCompleted({ id: created.id, completed: "sim" } as unknown as Parameters<
+        typeof api.task.setCompleted
+      >[0]),
+      "BAD_REQUEST",
+    );
   });
 
   it("retorna BAD_REQUEST para id inválido", async () => {

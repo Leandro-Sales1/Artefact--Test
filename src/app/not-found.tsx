@@ -6,10 +6,15 @@ export default async function NotFound() {
   const t = getDictionary(await getLocale());
 
   return (
-    <div className="space-y-4 text-center">
-      <h1 className="text-2xl font-bold">{t.notFound.heading}</h1>
-      <p className="text-gray-600">{t.notFound.message}</p>
-      <Link href="/" className="inline-block text-blue-600 hover:underline">
+    <div className="space-y-6">
+      <h1 className="border-b-2 border-ink pb-5 font-serif text-3xl leading-tight font-medium">
+        {t.notFound.heading}
+      </h1>
+      <p className="text-muted">{t.notFound.message}</p>
+      <Link
+        href="/"
+        className="inline-block text-sm text-accent underline underline-offset-4 hover:text-accent-hover"
+      >
         {t.notFound.back}
       </Link>
     </div>

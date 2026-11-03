@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+@theme inline {
+  --color-paper: #f0f1ec;
+  --color-ink: #161815;
+  --color-muted: #474c45;
+  --color-subtle: #61665e;
+  --color-line: #d9dbd4;
+  --color-field: #c9cbc4;
+  --color-accent: #2d6a4f;
+  --color-accent-hover: #24573f;
+  --color-danger: #a63d32;
+
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, serif;
+}

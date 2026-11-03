@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { useI18n } from "@/i18n/provider";
-import { Feedback } from "@/views/components/Feedback";
 
 type ErrorPageProps = {
   error: Error & { digest?: string };
@@ -17,12 +16,15 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   }, [error]);
 
   return (
-    <div className="space-y-4">
-      <Feedback type="error" message={t.errorPage.message} />
+    <div role="alert" className="space-y-6">
+      <h1 className="border-b-2 border-ink pb-5 font-serif text-3xl leading-tight font-medium">
+        {t.errorPage.heading}
+      </h1>
+      <p className="text-danger">{t.errorPage.message}</p>
       <button
         type="button"
         onClick={reset}
-        className="cursor-pointer rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        className="cursor-pointer rounded-full bg-accent px-5 py-2 text-sm font-medium text-white hover:bg-accent-hover"
       >
         {t.errorPage.retry}
       </button>

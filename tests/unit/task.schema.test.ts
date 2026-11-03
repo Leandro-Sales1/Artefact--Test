@@ -19,6 +19,7 @@ describe("taskSchema", () => {
       id: VALID_ID,
       title: "Tarefa",
       description: "Descrição",
+      completed: true,
       createdAt: new Date().toISOString(),
     });
     expect(result.success).toBe(true);

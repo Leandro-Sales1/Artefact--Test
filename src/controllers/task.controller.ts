@@ -1,13 +1,25 @@
 import { TRPCError } from "@trpc/server";
 import type { ErrorKey } from "@/i18n/dictionaries";
 import { taskModel } from "@/models/task.model";
-import { taskIdSchema, taskInputSchema, updateTaskSchema } from "@/models/task.schema";
+import {
+  setCompletedSchema,
+  taskIdSchema,
+  taskInputSchema,
+  updateTaskSchema,
+} from "@/models/task.schema";
 import { publicProcedure, router } from "@/trpc/init";
 
 function taskNotFound(): never {
   throw new TRPCError({
     code: "NOT_FOUND",
     message: "taskNotFound" satisfies ErrorKey,
+  });
+}
+
+function taskCompleted(): never {
+  throw new TRPCError({
+    code: "PRECONDITION_FAILED",
+    message: "taskCompleted" satisfies ErrorKey,
   });
 }
 
@@ -24,7 +36,16 @@ export const taskController = router({
 
   update: publicProcedure
     .input(updateTaskSchema)
-    .mutation(({ input: { id, ...data } }) => taskModel.update(id, data) ?? taskNotFound()),
+    .mutation(({ input: { id, ...data } }) => {
+      if (taskModel.findById(id)?.completed) taskCompleted();
+      return taskModel.update(id, data) ?? taskNotFound();
+    }),
+
+  setCompleted: publicProcedure
+    .input(setCompletedSchema)
+    .mutation(
+      ({ input }) => taskModel.setCompleted(input.id, input.completed) ?? taskNotFound(),
+    ),
 
   delete: publicProcedure.input(taskIdSchema).mutation(({ input }) => {
     if (!taskModel.remove(input.id)) taskNotFound();

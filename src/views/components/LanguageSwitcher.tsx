@@ -16,7 +16,7 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <div role="group" aria-label={t.languageSwitcher.label} className="mb-6 flex justify-end gap-1">
+    <div role="group" aria-label={t.languageSwitcher.label} className="mb-10 -mt-3 flex justify-end gap-1">
       {locales.map((option) => {
         const isActive = option === locale;
         return (
@@ -26,8 +26,10 @@ export function LanguageSwitcher() {
             onClick={() => changeLocale(option)}
             disabled={isActive || isPending}
             aria-pressed={isActive}
-            className={`cursor-pointer rounded-md px-2.5 py-1 text-xs font-medium disabled:cursor-default ${
-              isActive ? "bg-gray-900 text-white" : "border border-gray-300 hover:bg-gray-100"
+            className={`min-h-11 min-w-11 cursor-pointer px-2 text-base disabled:cursor-default ${
+              isActive
+                ? "font-semibold text-ink underline underline-offset-4"
+                : "text-muted hover:text-ink"
             }`}
           >
             {localeLabels[option]}

@@ -9,9 +9,8 @@ export const ptBR = {
   taskList: {
     heading: "Tarefas",
     newTask: "Nova tarefa",
+    count: (total: number) => (total === 1 ? "1 tarefa" : `${total} tarefas`),
     empty: "Nenhuma tarefa cadastrada ainda. Que tal criar a primeira?",
-    created: "Tarefa criada com sucesso!",
-    updated: "Tarefa atualizada com sucesso!",
   },
   taskItem: {
     createdAt: (date: string) => `Criada em ${date}`,
@@ -20,6 +19,9 @@ export const ptBR = {
     deleting: "Excluindo...",
     confirmDelete: (title: string) => `Deseja excluir a tarefa "${title}"?`,
     deleted: (title: string) => `Tarefa "${title}" excluída com sucesso!`,
+    completed: "Concluída",
+    markedCompleted: (title: string) => `Tarefa "${title}" marcada como concluída!`,
+    reopened: (title: string) => `Tarefa "${title}" reaberta!`,
   },
   taskForm: {
     createHeading: "Nova tarefa",
@@ -32,8 +34,10 @@ export const ptBR = {
     create: "Criar tarefa",
     save: "Salvar alterações",
     saving: "Salvando...",
+    created: (title: string) => `Tarefa "${title}" criada com sucesso!`,
+    updated: (title: string) => `Tarefa "${title}" atualizada com sucesso!`,
   },
-  feedback: {
+  toast: {
     close: "Fechar mensagem",
   },
   notFound: {
@@ -42,6 +46,7 @@ export const ptBR = {
     back: "Voltar para a lista de tarefas",
   },
   errorPage: {
+    heading: "Algo deu errado",
     message: "Ocorreu um erro inesperado ao carregar esta página.",
     retry: "Tentar novamente",
   },
@@ -51,7 +56,10 @@ export const ptBR = {
     descriptionInvalid: "A descrição deve ser um texto",
     descriptionTooLong: "A descrição deve ter no máximo 500 caracteres",
     invalidId: "ID de tarefa inválido",
+    completedInvalid: "O status de conclusão deve ser verdadeiro ou falso",
+    taskCompleted: "Tarefas concluídas não podem ser editadas. Reabra a tarefa para editá-la.",
     taskNotFound: "Tarefa não encontrada. Ela pode ter sido excluída.",
+    unexpected: "Ocorreu um erro inesperado no servidor. Tente novamente em instantes.",
     network: "Não foi possível se comunicar com o servidor. Verifique sua conexão e tente novamente.",
   },
 };

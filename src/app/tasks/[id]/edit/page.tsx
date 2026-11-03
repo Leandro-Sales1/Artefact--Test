@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getServerApi } from "@/trpc/server";
 import { TaskForm } from "@/views/tasks/TaskForm";
 
@@ -17,6 +17,9 @@ export default async function EditTaskPage({ params }: EditTaskPageProps) {
     }
     throw error;
   });
+
+  // Tarefas concluídas não são editáveis: volta para a lista.
+  if (task.completed) redirect("/");
 
   return <TaskForm task={task} />;
 }

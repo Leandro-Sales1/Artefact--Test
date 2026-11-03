@@ -30,6 +30,14 @@ describe("dicionários", () => {
   it("interpola os textos com variáveis", () => {
     expect(getDictionary("pt-BR").taskItem.deleted("Estudar")).toBe('Tarefa "Estudar" excluída com sucesso!');
     expect(getDictionary("en").taskItem.deleted("Study")).toBe('Task "Study" deleted successfully!');
+    expect(getDictionary("pt-BR").taskForm.created("Estudar")).toBe('Tarefa "Estudar" criada com sucesso!');
+    expect(getDictionary("en").taskForm.updated("Study")).toBe('Task "Study" updated successfully!');
+  });
+
+  it("flexiona a contagem de tarefas", () => {
+    expect(getDictionary("pt-BR").taskList.count(1)).toBe("1 tarefa");
+    expect(getDictionary("pt-BR").taskList.count(0)).toBe("0 tarefas");
+    expect(getDictionary("en").taskList.count(3)).toBe("3 tasks");
   });
 });
 

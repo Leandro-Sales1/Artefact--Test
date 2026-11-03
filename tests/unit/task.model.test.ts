@@ -7,9 +7,10 @@ beforeEach(resetTaskStore);
 afterEach(() => vi.useRealTimers());
 
 describe("taskModel", () => {
-  it("cria a tarefa com id UUID e createdAt gerados", () => {
+  it("cria a tarefa com id UUID e createdAt gerados, ainda não concluída", () => {
     const task = taskModel.create({ title: "Estudar" });
 
+    expect(task.completed).toBe(false);
     expect(taskSchema.safeParse(task).success).toBe(true);
     expect(taskModel.findById(task.id)).toEqual(task);
   });
@@ -47,6 +48,15 @@ describe("taskModel", () => {
     expect(taskModel.findById(other.id)).toEqual(other);
   });
 
+  it("marca e desmarca a conclusão só da tarefa do id informado", () => {
+    const target = taskModel.create({ title: "Igual" });
+    const other = taskModel.create({ title: "Igual" });
+
+    expect(taskModel.setCompleted(target.id, true)).toEqual({ ...target, completed: true });
+    expect(taskModel.findById(other.id)).toEqual(other);
+    expect(taskModel.setCompleted(target.id, false)?.completed).toBe(false);
+  });
+
   it("remove apenas a tarefa do id informado", () => {
     const target = taskModel.create({ title: "Igual" });
     const other = taskModel.create({ title: "Igual" });
@@ -59,6 +69,7 @@ describe("taskModel", () => {
   it("sinaliza id inexistente sem lançar erro", () => {
     expect(taskModel.findById(UNKNOWN_ID)).toBeNull();
     expect(taskModel.update(UNKNOWN_ID, { title: "x" })).toBeNull();
+    expect(taskModel.setCompleted(UNKNOWN_ID, true)).toBeNull();
     expect(taskModel.remove(UNKNOWN_ID)).toBe(false);
   });
 });
