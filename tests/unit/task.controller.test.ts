@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it } from "vitest";
+import { TASK_PAGE_SIZE } from "@/models/task.schema";
 import { createCallerFactory } from "@/trpc/init";
 import { appRouter } from "@/trpc/router";
 import { UNKNOWN_ID, resetTaskStore } from "../helpers/store";
@@ -21,15 +22,19 @@ describe("task controller", () => {
     expect(await api.task.getById({ id: created.id })).toEqual(created);
 
     const updated = await api.task.update({ id: created.id, title: "Estudar mais" });
-    expect(updated).toMatchObject({ id: created.id, title: "Estudar mais", createdAt: created.createdAt });
+    expect(updated).toMatchObject({
+      id: created.id,
+      title: "Estudar mais",
+      createdAt: created.createdAt,
+    });
 
     expect(await api.task.delete({ id: created.id })).toEqual({ id: created.id });
-    expect(await api.task.list()).toEqual([]);
+    expect((await api.task.list()).items).toEqual([]);
   });
 
   it("não cria tarefa sem título", async () => {
     await expectTRPCError(api.task.create({ title: "  " }), "BAD_REQUEST");
-    expect(await api.task.list()).toEqual([]);
+    expect((await api.task.list()).items).toEqual([]);
   });
 
   it("retorna NOT_FOUND para id inexistente", async () => {
@@ -46,14 +51,19 @@ describe("task controller", () => {
       ...created,
       completed: true,
     });
-    expect((await api.task.setCompleted({ id: created.id, completed: false })).completed).toBe(false);
+    expect((await api.task.setCompleted({ id: created.id, completed: false })).completed).toBe(
+      false,
+    );
   });
 
   it("não edita tarefa concluída, mas permite reabrir e então editar", async () => {
     const created = await api.task.create({ title: "Original" });
     await api.task.setCompleted({ id: created.id, completed: true });
 
-    await expectTRPCError(api.task.update({ id: created.id, title: "Alterada" }), "PRECONDITION_FAILED");
+    await expectTRPCError(
+      api.task.update({ id: created.id, title: "Alterada" }),
+      "PRECONDITION_FAILED",
+    );
     expect((await api.task.getById({ id: created.id })).title).toBe("Original");
 
     await api.task.setCompleted({ id: created.id, completed: false });
@@ -97,7 +107,26 @@ describe("task controller", () => {
     expect(await api.task.getById({ id: other.id })).toEqual(other);
 
     await api.task.delete({ id: target.id });
-    expect((await api.task.list()).map((task) => task.id)).toEqual([other.id]);
+    expect((await api.task.list()).items.map((task) => task.id)).toEqual([other.id]);
+  });
+
+  it("lista em páginas de TASK_PAGE_SIZE por padrão, seguindo o cursor até o fim", async () => {
+    const total = TASK_PAGE_SIZE * 2 + 3;
+    for (let i = 0; i < total; i++) await api.task.create({ title: `Tarefa ${i}` });
+
+    const pages = [await api.task.list()];
+    while (pages.at(-1)!.nextCursor)
+      pages.push(await api.task.list({ cursor: pages.at(-1)!.nextCursor }));
+
+    expect(pages.map((page) => page.items.length)).toEqual([TASK_PAGE_SIZE, TASK_PAGE_SIZE, 3]);
+    expect(pages[0].total).toBe(total);
+    expect(new Set(pages.flatMap((page) => page.items.map((task) => task.id))).size).toBe(total);
+  });
+
+  it("rejeita tamanho de página inválido", async () => {
+    await expectTRPCError(api.task.list({ limit: 0 }), "BAD_REQUEST");
+    await expectTRPCError(api.task.list({ limit: 51 }), "BAD_REQUEST");
+    await expectTRPCError(api.task.list({ limit: 2.5 }), "BAD_REQUEST");
   });
 
   it("não encontra a tarefa depois de excluída", async () => {

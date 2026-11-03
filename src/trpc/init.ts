@@ -15,7 +15,11 @@ const t = initTRPC.context<Context>().create({
       error.code === "INTERNAL_SERVER_ERROR"
         ? dictionary.errors.unexpected
         : error.cause instanceof ZodError
-          ? error.cause.issues.map((issue) => translateError(dictionary, issue.message)).join("; ")
+          ? [
+              ...new Set(
+                error.cause.issues.map((issue) => translateError(dictionary, issue.message)),
+              ),
+            ].join("; ")
           : translateError(dictionary, shape.message);
 
     // O stack fica só no log do servidor (onError da rota), nunca na resposta.

@@ -4,7 +4,9 @@ import { getDictionary, translateError } from "@/i18n/dictionaries";
 
 function shape(value: unknown, path = ""): string[] {
   if (value && typeof value === "object") {
-    return Object.entries(value).flatMap(([key, child]) => shape(child, path ? `${path}.${key}` : key));
+    return Object.entries(value).flatMap(([key, child]) =>
+      shape(child, path ? `${path}.${key}` : key),
+    );
   }
   return [`${path}:${typeof value}`];
 }
@@ -19,7 +21,9 @@ describe("dicionários", () => {
 
   it("nenhum texto está vazio", () => {
     for (const locale of locales) {
-      const texts = Object.values(getDictionary(locale)).flatMap((section) => Object.values(section));
+      const texts = Object.values(getDictionary(locale)).flatMap((section) =>
+        Object.values(section),
+      );
       for (const text of texts) {
         const value = typeof text === "function" ? text("x") : text;
         expect(value.trim().length, locale).toBeGreaterThan(0);
@@ -28,10 +32,18 @@ describe("dicionários", () => {
   });
 
   it("interpola os textos com variáveis", () => {
-    expect(getDictionary("pt-BR").taskItem.deleted("Estudar")).toBe('Tarefa "Estudar" excluída com sucesso!');
-    expect(getDictionary("en").taskItem.deleted("Study")).toBe('Task "Study" deleted successfully!');
-    expect(getDictionary("pt-BR").taskForm.created("Estudar")).toBe('Tarefa "Estudar" criada com sucesso!');
-    expect(getDictionary("en").taskForm.updated("Study")).toBe('Task "Study" updated successfully!');
+    expect(getDictionary("pt-BR").taskItem.deleted("Estudar")).toBe(
+      'Tarefa "Estudar" excluída com sucesso!',
+    );
+    expect(getDictionary("en").taskItem.deleted("Study")).toBe(
+      'Task "Study" deleted successfully!',
+    );
+    expect(getDictionary("pt-BR").taskForm.created("Estudar")).toBe(
+      'Tarefa "Estudar" criada com sucesso!',
+    );
+    expect(getDictionary("en").taskForm.updated("Study")).toBe(
+      'Task "Study" updated successfully!',
+    );
   });
 
   it("flexiona a contagem de tarefas", () => {

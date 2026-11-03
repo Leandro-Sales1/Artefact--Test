@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
+import { getQueryKey } from "@trpc/react-query";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { z } from "zod";
@@ -27,22 +29,29 @@ export function TaskForm({ task }: TaskFormProps) {
   const { t } = useI18n();
   const router = useRouter();
   const showToast = useToast();
+  const queryClient = useQueryClient();
 
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
   const [errors, setErrors] = useState<FieldErrors>({});
 
+  // Descarta a lista em cache: ela recomeça com a primeira página que o servidor renderizar.
+  function backToList() {
+    queryClient.removeQueries({ queryKey: getQueryKey(trpc.task.list) });
+    router.push("/");
+  }
+
   const mutationOptions = {
     onSuccess: (saved: Task) => {
       const message = isEditing ? t.taskForm.updated(saved.title) : t.taskForm.created(saved.title);
       showToast({ type: "success", message });
-      router.push("/");
+      backToList();
     },
     onError: (error: Parameters<typeof getErrorMessage>[0]) => {
       showToast({ type: "error", message: getErrorMessage(error, t) });
       // A tarefa foi excluída ou concluída enquanto era editada: volta para a lista atualizada.
       const code = error.data?.code;
-      if (code === "NOT_FOUND" || code === "PRECONDITION_FAILED") router.push("/");
+      if (code === "NOT_FOUND" || code === "PRECONDITION_FAILED") backToList();
     },
   };
   const createTask = trpc.task.create.useMutation(mutationOptions);

@@ -2,13 +2,21 @@
   "name": "task-manager",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "check": "npm run lint && npm run typecheck && npm run format:check && npm test"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.105.3",
@@ -23,11 +31,17 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
     "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.28",
+    "jsdom": "^29.1.1",
+    "prettier": "^3.9.10",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.1.0"

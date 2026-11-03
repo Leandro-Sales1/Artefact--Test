@@ -23,10 +23,13 @@ describe("formatação de erros do tRPC", () => {
   it.each([
     ["pt-BR", "Ocorreu um erro inesperado no servidor. Tente novamente em instantes."],
     ["en", "An unexpected server error occurred. Please try again shortly."],
-  ] as const)("erro inesperado → 500 com mensagem genérica, sem detalhes internos (%s)", async (locale, message) => {
-    const { status, body } = await callCrash(locale);
-    expect(status).toBe(500);
-    expect(body.error).toMatchObject({ message, data: { code: "INTERNAL_SERVER_ERROR" } });
-    expect(JSON.stringify(body)).not.toContain("10.0.0.5");
-  });
+  ] as const)(
+    "erro inesperado → 500 com mensagem genérica, sem detalhes internos (%s)",
+    async (locale, message) => {
+      const { status, body } = await callCrash(locale);
+      expect(status).toBe(500);
+      expect(body.error).toMatchObject({ message, data: { code: "INTERNAL_SERVER_ERROR" } });
+      expect(JSON.stringify(body)).not.toContain("10.0.0.5");
+    },
+  );
 });

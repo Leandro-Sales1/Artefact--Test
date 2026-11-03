@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { GET, POST } from "@/app/api/trpc/[trpc]/route";
-import type { Task } from "@/models/task.schema";
+import type { Task, TaskPage } from "@/models/task.schema";
 import { UNKNOWN_ID, resetTaskStore } from "../helpers/store";
 
-type TRPCResponse<T> = { result?: { data: T }; error?: { message: string; data: { code: string } } };
+type TRPCResponse<T> = {
+  result?: { data: T };
+  error?: { message: string; data: { code: string } };
+};
 
 const url = (procedure: string) => `http://localhost/api/trpc/${procedure}`;
 const cookieHeader = (locale?: string): Record<string, string> =>
@@ -11,7 +14,9 @@ const cookieHeader = (locale?: string): Record<string, string> =>
 
 async function query<T>(procedure: string, input?: unknown, locale?: string) {
   const search = input === undefined ? "" : `?input=${encodeURIComponent(JSON.stringify(input))}`;
-  const response = await GET(new Request(url(procedure) + search, { headers: cookieHeader(locale) }));
+  const response = await GET(
+    new Request(url(procedure) + search, { headers: cookieHeader(locale) }),
+  );
   return { status: response.status, body: (await response.json()) as TRPCResponse<T> };
 }
 
@@ -40,7 +45,11 @@ describe("API HTTP /api/trpc", () => {
     expect(updated.body.result!.data).toMatchObject({ id, title: "Alterada" });
 
     expect((await mutation("task.delete", { id })).status).toBe(200);
-    expect((await query<Task[]>("task.list")).body.result!.data).toEqual([]);
+    expect((await query<TaskPage>("task.list")).body.result!.data).toEqual({
+      items: [],
+      nextCursor: null,
+      total: 0,
+    });
   });
 
   it.each([
@@ -77,6 +86,19 @@ describe("API HTTP /api/trpc", () => {
     const { status, body } = await mutation("task.update", { id, title: "x" }, locale);
     expect(status).toBe(412);
     expect(body.error).toMatchObject({ message, data: { code: "PRECONDITION_FAILED" } });
+  });
+
+  it.each([
+    ["pt-BR", "Posição de paginação inválida"],
+    ["en", "Invalid pagination position"],
+  ])("cursor inválido → 400 com mensagem traduzida (%s)", async (locale, message) => {
+    const { status, body } = await query(
+      "task.list",
+      { cursor: { id: "abc", createdAt: "ontem" } },
+      locale,
+    );
+    expect(status).toBe(400);
+    expect(body.error!.message).toBe(message);
   });
 
   it("id ausente ou inválido → 400", async () => {

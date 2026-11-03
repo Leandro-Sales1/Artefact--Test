@@ -16,7 +16,11 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <div role="group" aria-label={t.languageSwitcher.label} className="mb-10 -mt-3 flex justify-end gap-1">
+    <div
+      role="group"
+      aria-label={t.languageSwitcher.label}
+      className="mb-10 -mt-3 flex justify-end gap-1"
+    >
       {locales.map((option) => {
         const isActive = option === locale;
         return (

@@ -1,4 +1,9 @@
-import type { Task, TaskInput } from "./task.schema";
+import type { Task, TaskCursor, TaskInput, TaskPage } from "./task.schema";
+
+// Mais recentes primeiro; o id desempata tarefas criadas no mesmo instante.
+function compareTasks(a: TaskCursor, b: TaskCursor): number {
+  return b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id);
+}
 
 // Em globalThis para sobreviver ao hot-reload e ser compartilhado entre o route handler e o SSR.
 const globalForTasks = globalThis as typeof globalThis & {
@@ -9,7 +14,18 @@ const tasks = (globalForTasks.__tasks ??= new Map<string, Task>());
 
 export const taskModel = {
   findAll(): Task[] {
-    return [...tasks.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return [...tasks.values()].sort(compareTasks);
+  },
+
+  findPage(limit: number, cursor?: TaskCursor | null): TaskPage {
+    const all = this.findAll();
+    const remaining = cursor ? all.filter((task) => compareTasks(task, cursor) > 0) : all;
+    const items = remaining.slice(0, limit);
+    const last = items.at(-1);
+    const nextCursor =
+      remaining.length > limit && last ? { id: last.id, createdAt: last.createdAt } : null;
+
+    return { items, nextCursor, total: all.length };
   },
 
   findById(id: string): Task | null {
@@ -32,11 +48,11 @@ export const taskModel = {
     const current = tasks.get(id);
     if (!current) return null;
 
-    const updated: Task = {
-      ...current,
-      title: input.title,
-      description: input.description || undefined,
-    };
+    // Descrição ausente na requisição mantém a atual; string vazia remove a descrição.
+    const description =
+      input.description === undefined ? current.description : input.description || undefined;
+
+    const updated: Task = { ...current, title: input.title, description };
     tasks.set(id, updated);
     return updated;
   },
