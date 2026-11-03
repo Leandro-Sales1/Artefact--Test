@@ -15,6 +15,7 @@ export const taskSchema = z.object({
     .trim()
     .max(500, error("descriptionTooLong"))
     .optional(),
+  completed: z.boolean(error("completedInvalid")),
   createdAt: z.iso.datetime(),
 });
 
@@ -24,6 +25,9 @@ export const taskIdSchema = taskSchema.pick({ id: true });
 
 export const updateTaskSchema = taskInputSchema.extend(taskIdSchema.shape);
 
+export const setCompletedSchema = taskSchema.pick({ id: true, completed: true });
+
 export type Task = z.infer<typeof taskSchema>;
 export type TaskInput = z.infer<typeof taskInputSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
+export type SetCompletedInput = z.infer<typeof setCompletedSchema>;

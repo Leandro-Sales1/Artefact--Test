@@ -67,6 +67,18 @@ describe("API HTTP /api/trpc", () => {
     expect(status).toBe(404);
   });
 
+  it.each([
+    ["pt-BR", "Tarefas concluídas não podem ser editadas. Reabra a tarefa para editá-la."],
+    ["en", "Completed tasks cannot be edited. Reopen the task to edit it."],
+  ])("editar tarefa concluída → 412 com mensagem traduzida (%s)", async (locale, message) => {
+    const id = (await mutation<Task>("task.create", { title: "Feita" })).body.result!.data.id;
+    await mutation("task.setCompleted", { id, completed: true });
+
+    const { status, body } = await mutation("task.update", { id, title: "x" }, locale);
+    expect(status).toBe(412);
+    expect(body.error).toMatchObject({ message, data: { code: "PRECONDITION_FAILED" } });
+  });
+
   it("id ausente ou inválido → 400", async () => {
     const missing = await mutation("task.update", { title: "x" }, "en");
     expect(missing.status).toBe(400);

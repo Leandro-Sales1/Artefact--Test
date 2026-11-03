@@ -21,6 +21,7 @@ export const taskModel = {
       id: crypto.randomUUID(),
       title: input.title,
       description: input.description || undefined,
+      completed: false,
       createdAt: new Date().toISOString(),
     };
     tasks.set(task.id, task);
@@ -36,6 +37,15 @@ export const taskModel = {
       title: input.title,
       description: input.description || undefined,
     };
+    tasks.set(id, updated);
+    return updated;
+  },
+
+  setCompleted(id: string, completed: boolean): Task | null {
+    const current = tasks.get(id);
+    if (!current) return null;
+
+    const updated: Task = { ...current, completed };
     tasks.set(id, updated);
     return updated;
   },

@@ -8,7 +8,7 @@ import { translateError } from "@/i18n/dictionaries";
 import { useI18n } from "@/i18n/provider";
 import { taskInputSchema, type Task, type TaskInput } from "@/models/task.schema";
 import { trpc } from "@/trpc/client";
-import { Feedback } from "@/views/components/Feedback";
+import { useToast } from "@/views/components/Toast";
 import { getErrorMessage } from "@/views/utils/errors";
 
 type FieldErrors = Partial<Record<keyof TaskInput, string>>;
@@ -17,21 +17,36 @@ type TaskFormProps = {
   task?: Task;
 };
 
+const labelClass = "block text-xs tracking-wider text-muted uppercase";
+
 const inputClass =
-  "w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none disabled:bg-gray-100 aria-invalid:border-red-500";
+  "w-full border-0 border-b border-field bg-transparent py-2 focus:border-accent focus:outline-none disabled:text-subtle aria-invalid:border-danger";
 
 export function TaskForm({ task }: TaskFormProps) {
   const isEditing = task !== undefined;
   const { t } = useI18n();
   const router = useRouter();
+  const showToast = useToast();
 
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
   const [errors, setErrors] = useState<FieldErrors>({});
 
-  const onSuccess = () => router.push(`/?feedback=${isEditing ? "updated" : "created"}`);
-  const createTask = trpc.task.create.useMutation({ onSuccess });
-  const updateTask = trpc.task.update.useMutation({ onSuccess });
+  const mutationOptions = {
+    onSuccess: (saved: Task) => {
+      const message = isEditing ? t.taskForm.updated(saved.title) : t.taskForm.created(saved.title);
+      showToast({ type: "success", message });
+      router.push("/");
+    },
+    onError: (error: Parameters<typeof getErrorMessage>[0]) => {
+      showToast({ type: "error", message: getErrorMessage(error, t) });
+      // A tarefa foi excluída ou concluída enquanto era editada: volta para a lista atualizada.
+      const code = error.data?.code;
+      if (code === "NOT_FOUND" || code === "PRECONDITION_FAILED") router.push("/");
+    },
+  };
+  const createTask = trpc.task.create.useMutation(mutationOptions);
+  const updateTask = trpc.task.update.useMutation(mutationOptions);
   const mutation = isEditing ? updateTask : createTask;
 
   const isSaving = mutation.isPending || mutation.isSuccess;
@@ -55,20 +70,14 @@ export function TaskForm({ task }: TaskFormProps) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      className="space-y-5 rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
-    >
-      <h1 className="text-2xl font-bold">
+    <form onSubmit={handleSubmit} noValidate className="space-y-8">
+      <h1 className="border-b-2 border-ink pb-5 font-serif text-3xl leading-tight font-medium">
         {isEditing ? t.taskForm.editHeading : t.taskForm.createHeading}
       </h1>
 
-      {mutation.error && <Feedback type="error" message={getErrorMessage(mutation.error, t)} />}
-
-      <div className="space-y-1">
-        <label htmlFor="title" className="block text-sm font-medium">
-          {t.taskForm.title} <span className="text-red-600">*</span>
+      <div className="space-y-2">
+        <label htmlFor="title" className={labelClass}>
+          {t.taskForm.title} *
         </label>
         <input
           id="title"
@@ -84,16 +93,15 @@ export function TaskForm({ task }: TaskFormProps) {
           className={inputClass}
         />
         {errors.title && (
-          <p id="title-error" className="text-sm text-red-600">
+          <p id="title-error" className="text-sm text-danger">
             {translateError(t, errors.title)}
           </p>
         )}
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="description" className="block text-sm font-medium">
-          {t.taskForm.description}{" "}
-          <span className="font-normal text-gray-500">{t.taskForm.optional}</span>
+      <div className="space-y-2">
+        <label htmlFor="description" className={labelClass}>
+          {t.taskForm.description} {t.taskForm.optional}
         </label>
         <textarea
           id="description"
@@ -106,26 +114,26 @@ export function TaskForm({ task }: TaskFormProps) {
           rows={4}
           aria-invalid={Boolean(errors.description)}
           aria-describedby={errors.description ? "description-error" : undefined}
-          className={inputClass}
+          className={`${inputClass} resize-y`}
         />
         {errors.description && (
-          <p id="description-error" className="text-sm text-red-600">
+          <p id="description-error" className="text-sm text-danger">
             {translateError(t, errors.description)}
           </p>
         )}
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex items-center justify-end gap-5 pt-2">
         <Link
           href="/"
-          className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-100"
+          className="text-sm text-muted underline decoration-line underline-offset-4 hover:text-ink hover:decoration-current"
         >
           {t.taskForm.cancel}
         </Link>
         <button
           type="submit"
           disabled={isSaving}
-          className="cursor-pointer rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="cursor-pointer rounded-full bg-accent px-5 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSaving ? t.taskForm.saving : isEditing ? t.taskForm.save : t.taskForm.create}
         </button>

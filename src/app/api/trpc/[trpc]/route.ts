@@ -8,6 +8,9 @@ function handler(req: Request) {
     req,
     router: appRouter,
     createContext: () => ({ locale: getLocaleFromCookieHeader(req.headers.get("cookie")) }),
+    onError: ({ error, path }) => {
+      if (error.code === "INTERNAL_SERVER_ERROR") console.error(`[tRPC] ${path}:`, error);
+    },
   });
 }
 
