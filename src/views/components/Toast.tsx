@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useI18n } from "@/i18n/provider";
 
 export type ToastMessage = {
@@ -21,9 +29,11 @@ const ToastContext = createContext<((toast: ToastMessage) => void) | null>(null)
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const nextId = useRef(0);
 
   const showToast = useCallback((toast: ToastMessage) => {
-    setToasts((current) => [{ ...toast, id: Date.now() + Math.random() }, ...current]);
+    const id = ++nextId.current;
+    setToasts((current) => [{ ...toast, id }, ...current]);
   }, []);
 
   const dismiss = useCallback((id: number) => {

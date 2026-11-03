@@ -1,3 +1,4 @@
+import { TASK_PAGE_SIZE } from "@/models/task.schema";
 import { getServerApi } from "@/trpc/server";
 import { TaskList } from "@/views/tasks/TaskList";
 
@@ -6,7 +7,8 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const api = await getServerApi();
-  const tasks = await api.task.list();
+  // Primeira página renderizada no servidor; as próximas são buscadas pelo navegador.
+  const firstPage = await api.task.list({ limit: TASK_PAGE_SIZE });
 
-  return <TaskList tasks={tasks} />;
+  return <TaskList firstPage={firstPage} />;
 }

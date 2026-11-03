@@ -77,7 +77,11 @@ describe("taskInputSchema", () => {
   });
 
   it("não aceita id nem createdAt vindos do cliente", () => {
-    const result = taskInputSchema.parse({ title: "ok", id: VALID_ID, createdAt: "2020-01-01T00:00:00Z" });
+    const result = taskInputSchema.parse({
+      title: "ok",
+      id: VALID_ID,
+      createdAt: "2020-01-01T00:00:00Z",
+    });
     expect(result).toEqual({ title: "ok" });
   });
 });

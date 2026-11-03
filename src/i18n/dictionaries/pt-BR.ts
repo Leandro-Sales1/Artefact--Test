@@ -10,6 +10,10 @@ export const ptBR = {
     heading: "Tarefas",
     newTask: "Nova tarefa",
     count: (total: number) => (total === 1 ? "1 tarefa" : `${total} tarefas`),
+    loadingMore: "Carregando mais tarefas...",
+    allLoaded: "Todas as tarefas foram carregadas.",
+    loadMoreFailed: "Não foi possível carregar mais tarefas.",
+    retry: "Tentar novamente",
     empty: "Nenhuma tarefa cadastrada ainda. Que tal criar a primeira?",
   },
   taskItem: {
@@ -56,11 +60,14 @@ export const ptBR = {
     descriptionInvalid: "A descrição deve ser um texto",
     descriptionTooLong: "A descrição deve ter no máximo 500 caracteres",
     invalidId: "ID de tarefa inválido",
+    invalidCursor: "Posição de paginação inválida",
+    invalidLimit: "A quantidade por página deve ser um número inteiro entre 1 e 50",
     completedInvalid: "O status de conclusão deve ser verdadeiro ou falso",
     taskCompleted: "Tarefas concluídas não podem ser editadas. Reabra a tarefa para editá-la.",
     taskNotFound: "Tarefa não encontrada. Ela pode ter sido excluída.",
     unexpected: "Ocorreu um erro inesperado no servidor. Tente novamente em instantes.",
-    network: "Não foi possível se comunicar com o servidor. Verifique sua conexão e tente novamente.",
+    network:
+      "Não foi possível se comunicar com o servidor. Verifique sua conexão e tente novamente.",
   },
 };
 

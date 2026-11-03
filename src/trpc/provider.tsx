@@ -6,7 +6,10 @@ import { useState, type ReactNode } from "react";
 import { trpc } from "./client";
 
 export function TRPCProvider({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  // staleTime evita buscar de novo logo após receber os dados renderizados no servidor.
+  const [queryClient] = useState(
+    () => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000 } } }),
+  );
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [httpBatchLink({ url: "/api/trpc" })],
